@@ -3,7 +3,7 @@
 This plugin can help you quickly create a admin with only one line code to implement CRUD functions, 
 which is very suitable for small and simple projects. 
 
-## Install
+## Install/Update
 `go get -u github.com/oimoyu/OimoAdmin@latest`
 
 ## Code Usage
@@ -51,9 +51,11 @@ If you want to reset the admin login key, you can delete the secret files and re
 This plugin needs the client's real IP to ensure that fail2ban and logs are recorded normally. 
 If you want to run behind a reverse proxy, please set the header correctly.
 
+*If you found the js/css things return 404, check if other location rules covered reverse proxy. Because both the api and js/css things is serve by gin.*
+
 nginx reference settings:
 ```
-    location / {
+    location ~ / {
         proxy_pass http://127.0.0.1:8098;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
