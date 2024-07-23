@@ -20,6 +20,11 @@ which is very suitable for small and simple projects.
 ```
 You can check the full example code [here](./example/example.go). 
 The full example code needs sqlite driver `go get -u github.com/glebarez/sqlite`, you can use other database driver if you want.
+### Video Example
+
+
+https://github.com/user-attachments/assets/68610f34-ae93-4c92-9c7b-c80c79a52780
+
 
 
 ## Usage Notice
