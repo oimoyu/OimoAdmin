@@ -19,7 +19,7 @@ which is very suitable for small and simple projects.
     r.Run("0.0.0.0:8098")
 ```
 You can check the full example code [here](./example/example.go). 
-The full example code needs sqlite driver `go get -u gorm.io/glebarez/sqlite`, you can use other database driver if you want.
+The full example code needs sqlite driver `go get -u github.com/glebarez/sqlite`, you can use other database driver if you want.
 
 
 ## Usage Notice
