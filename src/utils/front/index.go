@@ -172,7 +172,7 @@ func GenerateIndex() error {
             },
             context: {
             },
-		  	locale: 'en-US'
+		  	locale: navigator.language.startsWith('zh') ? 'zh' : 'en-US'
 
           },
           {

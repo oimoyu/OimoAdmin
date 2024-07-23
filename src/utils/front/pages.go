@@ -89,7 +89,7 @@ func GeneratePages() error {
 		{
 			"type": "service",
 			"api": "post:./sys_info",
-			"interval": 2000,
+			"interval": 100,
 			"silentPolling": true,
 			"body":[
 				{

@@ -42,7 +42,7 @@ func getSystemInfo() map[string]interface{} {
 	diskUsageMBString := fmt.Sprintf("%.0f", diskUsageMB)
 	diskPercentageString := fmt.Sprintf("%.1f", diskUsageMB/diskTotalMB*100)
 
-	uploadSpeed, downloadSpeed, _ := getNetworkSpeed(time.Millisecond * 1000)
+	uploadSpeed, downloadSpeed, _ := getNetworkSpeed(time.Millisecond * 3000)
 	uploadSpeedString := fmt.Sprintf("%.1f", uploadSpeed)
 	downloadSpeedString := fmt.Sprintf("%.1f", downloadSpeed)
 
