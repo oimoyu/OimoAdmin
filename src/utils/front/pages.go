@@ -252,6 +252,12 @@ func GeneratePages() error {
 						"name": "raw_sql",
 						"label": "Execute Raw Sql",
 						"placeholder": "UPDATE users set username='test' where id=123456"
+					},
+					{
+						"type": "switch",
+						"name": "is_select",
+						"value": false,
+						"option": "Is Select?"
 					}
 				  ],
 				  "actions": [
@@ -287,9 +293,14 @@ func GeneratePages() error {
 								"method": "post",
 								"data": {
 									"dry_run": false,
-									"raw_sql": "$raw_sql"
+									"raw_sql": "$raw_sql",
+									"is_select": "$is_select"
 								}
 							  }
+							},
+							{
+							  "actionType": "custom",
+							  "script": "doAction({actionType: 'setValue', 'componentId': 'sql_return', 'args': {'value': {'sql_return': event.data.sql_return}} })"
 							},
 							{
 							  "actionType": "reload",
@@ -298,6 +309,23 @@ func GeneratePages() error {
 						]
 					  }
 				  }
+				},
+				{
+					"type": "service",
+					"id": "sql_return",
+					"data": {
+						"sql_return": []
+					},
+					"body": [
+						{
+							"type": "each",
+							"name": "$sql_return",
+							"items": {
+								"type": "tpl",
+								"tpl": "<span>${item|json}</span><br />"
+							}
+						}
+					]
 				}
 			]
 		}

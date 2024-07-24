@@ -21,8 +21,9 @@ func addSqlRecord(str string, strSlice *[]string) {
 
 func ExecuteRawSql(c *gin.Context) {
 	var requestData struct {
-		RawSql string `json:"raw_sql" binding:"required"`
-		DryRun bool   `json:"dry_run"`
+		RawSql   string `json:"raw_sql" binding:"required"`
+		DryRun   bool   `json:"dry_run"`
+		IsSelect bool   `json:"is_select"` // don't use required,false is default zero value, seen as err
 	}
 	if err := c.ShouldBindBodyWith(&requestData, binding.JSON); err != nil {
 		restful.ParamErr(c, fmt.Sprintf("parse input params failed: %v", err))
@@ -54,7 +55,14 @@ func ExecuteRawSql(c *gin.Context) {
 		}
 		restful.Ok(c, returnData)
 	} else {
-		result := g.OimoAdmin.DB.Exec(requestData.RawSql)
+		var sqlReturn []map[string]interface{}
+		var result *gorm.DB
+		if requestData.IsSelect {
+			result = g.OimoAdmin.DB.Raw(requestData.RawSql).Scan(&sqlReturn)
+		} else {
+			result = g.OimoAdmin.DB.Exec(requestData.RawSql)
+		}
+
 		if result.Error != nil {
 			errMsg := fmt.Sprintf("failed to execute: %v", result.Error)
 			restful.ParamErr(c, errMsg)
@@ -62,6 +70,7 @@ func ExecuteRawSql(c *gin.Context) {
 		}
 		returnData := map[string]interface{}{
 			"affect_rows": result.RowsAffected,
+			"sql_return":  sqlReturn,
 		}
 		g.OimoAdmin.Logger.FileLog(fmt.Sprintf("%s: Execute raw sql: %s", c.ClientIP(), requestData.RawSql))
 
