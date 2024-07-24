@@ -29,7 +29,7 @@ func InitTables(db *gorm.DB, adminConfig _type.AdminConfig) []_type.TableStruct 
 		columns := make([]_type.ColumnStruct, 0)
 		for _, gormColType := range gormColTypes {
 			colName := gormColType.Name()
-			colTypeString := gormColType.DatabaseTypeName()
+			colTypeString := strings.ToLower(gormColType.DatabaseTypeName())
 			//colType, err := TypeFromString(colTypeString)
 			//if err != nil {
 			//	panic(err)

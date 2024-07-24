@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/oimoyu/OimoAdmin/src/utils/_type"
+	"github.com/oimoyu/OimoAdmin/src/utils/functions"
 	"github.com/oimoyu/OimoAdmin/src/utils/g"
 	"github.com/oimoyu/OimoAdmin/src/utils/restful"
 	"strings"
@@ -60,21 +61,47 @@ func FetchList(c *gin.Context) {
 			return
 		}
 
-		// get column name
-		columnNames := make([]string, 0)
-		for _, column := range currentTable.Columns {
-			columnNames = append(columnNames, column.Name)
-		}
-
-		keyword := "%" + fetchRequestData.Keyword + "%"
+		keyword := fetchRequestData.Keyword
+		keywordWithWildcard := "%" + keyword + "%"
 		var conditions []string
 		var args []interface{}
-		for _, column := range columnNames {
-			conditions = append(conditions, fmt.Sprintf("%s LIKE ?", column)) // sql concat, but the columnNames is trusted
-			args = append(args, keyword)
-		}
-		query = query.Where(strings.Join(conditions, " OR "), args...)
+		for _, column := range currentTable.Columns {
+			columnName := column.Name
+			columnDBType := column.DBType
+			// sql concat, but the columnNames is trusted
+			if columnDBType == "uuid" {
+				if !functions.IsStringUUID(keyword) {
+					continue
+				}
+				conditions = append(conditions, fmt.Sprintf("\"%s\" = ?", columnName))
+				args = append(args, keyword)
 
+			} else if functions.IsMatchInSlice(columnDBType, []string{"float", "double", "real", "decimal", "numeric"}) {
+				if !functions.IsStrictNumeric(keyword) {
+					continue
+				}
+				conditions = append(conditions, fmt.Sprintf("\"%s\" = ?", columnName))
+				args = append(args, keyword)
+
+			} else if functions.IsMatchInSlice(columnDBType, []string{"int", "serial"}) {
+				if !functions.IsStrictInt(keyword) {
+					continue
+				}
+				conditions = append(conditions, fmt.Sprintf("\"%s\" = ?", columnName))
+				args = append(args, keyword)
+
+			} else if functions.IsMatchInSlice(columnDBType, []string{"char", "text"}) {
+				conditions = append(conditions, fmt.Sprintf("\"%s\" LIKE ?", columnName))
+				args = append(args, keywordWithWildcard)
+			} else if functions.IsMatchInSlice(columnDBType, []string{"json", "jsonb"}) {
+				if g.OimoAdmin.DB.Dialector.Name() == "postgres" {
+					conditions = append(conditions, fmt.Sprintf("\"%s\"::text LIKE ?", columnName))
+					args = append(args, keywordWithWildcard)
+				}
+			}
+		}
+
+		query = query.Where(strings.Join(conditions, " OR "), args...)
 	}
 
 	// copy a query for count

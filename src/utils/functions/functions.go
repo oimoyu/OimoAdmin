@@ -12,7 +12,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 )
@@ -260,4 +262,25 @@ func FormatJsonString(jsonString string) (string, error) {
 		return "", err
 	}
 	return string(formattedJSON), nil
+}
+func IsMatchInSlice(totalString string, substrings []string) bool {
+	for _, substring := range substrings {
+		if strings.Contains(totalString, substring) {
+			return true
+		}
+	}
+	return false
+}
+func IsStringUUID(s string) bool {
+	// check is uuid without lib
+	re := regexp.MustCompile(`^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`)
+	return re.MatchString(s)
+}
+func IsStrictNumeric(s string) bool {
+	re := regexp.MustCompile(`^[+-]?(\d+(\.\d*)?|\.\d+)$`)
+	return re.MatchString(s)
+}
+func IsStrictInt(s string) bool {
+	re := regexp.MustCompile(`^[+-]?\d+$`)
+	return re.MatchString(s)
 }
