@@ -277,7 +277,7 @@ func GeneratePages() error {
 							},
 							{
 							  "actionType": "custom",
-							  "script": "if(event.data.result.data.affect_rows===0){doAction({actionType: 'toast', args: {'msg': 'This Sql Affect 0 Rows.'}})};if(!event.data.result.data.affect_rows){event.stopPropagation()}"
+							  "script": "if(event.data.result.data.affect_rows===undefined){event.stopPropagation()}"
 							},
 							{
 							  "actionType": "confirmDialog",
