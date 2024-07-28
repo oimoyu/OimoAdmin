@@ -20,7 +20,7 @@ func GenerateIndex() error {
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>oimo admin</title>
+    <title>admin</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta
       name="viewport"
@@ -67,7 +67,7 @@ func GenerateIndex() error {
 
         const app = {
           type: 'app',
-          brandName: 'Oimo Admin',
+          brandName: 'Admin',
           header: {
 			  "type": "container",
 			  "style": { "margin-left": "auto" },
