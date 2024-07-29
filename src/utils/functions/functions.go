@@ -276,11 +276,11 @@ func IsStringUUID(s string) bool {
 	re := regexp.MustCompile(`^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`)
 	return re.MatchString(s)
 }
-func IsStrictNumeric(s string) bool {
+func IsStringNumeric(s string) bool {
 	re := regexp.MustCompile(`^[+-]?(\d+(\.\d*)?|\.\d+)$`)
 	return re.MatchString(s)
 }
-func IsStrictInt(s string) bool {
+func IsStringInt(s string) bool {
 	re := regexp.MustCompile(`^[+-]?\d+$`)
 	return re.MatchString(s)
 }

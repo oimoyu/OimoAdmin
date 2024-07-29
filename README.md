@@ -19,7 +19,8 @@ which is very suitable for small and simple projects.
     r.Run("0.0.0.0:8098")
 ```
 You can check the full example code [here](./example/example.go). 
-The full example code needs sqlite driver `go get -u github.com/glebarez/sqlite`, you can use other database driver if you want.
+The example code needs `sqlite` driver, you can use other database driver if you want. This should be work in `mysql` or `pgsql`.
+
 ### Video Example
 
 
@@ -56,7 +57,7 @@ If you want to reset the admin login key, you can delete the secret files and re
 This plugin needs the client's real IP to ensure that fail2ban and logs are recorded normally. 
 If you want to run behind a reverse proxy, please set the header correctly.
 
-*If you found the js/css things return 404, check if other location rules covered reverse proxy. Because both the api and js/css things is serve by gin.*
+*If you found the js/css things return 404, check if other location rules covered reverse proxy. Because both the api and js/css things are served by gin.*
 
 nginx reference settings:
 ```

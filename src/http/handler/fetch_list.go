@@ -77,14 +77,14 @@ func FetchList(c *gin.Context) {
 				args = append(args, keyword)
 
 			} else if functions.IsMatchInSlice(columnDBType, []string{"float", "double", "real", "decimal", "numeric"}) {
-				if !functions.IsStrictNumeric(keyword) {
+				if !functions.IsStringNumeric(keyword) {
 					continue
 				}
 				conditions = append(conditions, fmt.Sprintf("\"%s\" = ?", columnName))
 				args = append(args, keyword)
 
 			} else if functions.IsMatchInSlice(columnDBType, []string{"int", "serial"}) {
-				if !functions.IsStrictInt(keyword) {
+				if !functions.IsStringInt(keyword) {
 					continue
 				}
 				conditions = append(conditions, fmt.Sprintf("\"%s\" = ?", columnName))
