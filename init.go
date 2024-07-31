@@ -1,6 +1,8 @@
 package OimoAdmin
 
 import (
+	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/oimoyu/OimoAdmin/src/db"
 	"github.com/oimoyu/OimoAdmin/src/http/router"
@@ -11,18 +13,34 @@ import (
 	"github.com/oimoyu/OimoAdmin/src/utils/front"
 	"github.com/oimoyu/OimoAdmin/src/utils/functions"
 	"github.com/oimoyu/OimoAdmin/src/utils/g"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"path"
 )
 
 func Init(r *gin.Engine, d *gorm.DB, options ...interface{}) {
 	var adminConfig _type.AdminConfig
+	var redisClient *redis.Client
 	for _, option := range options {
 		switch opt := option.(type) {
 		case _type.AdminConfig:
 			adminConfig = opt
+		case *redis.Client:
+			redisClient = opt
 		default:
+			panic(fmt.Sprintf("Unknown input type：%T", option))
+		}
+	}
 
+	// validate gorm db
+	if _, err := d.DB(); err != nil {
+		panic(fmt.Sprintf("Database connection error: %s", err))
+	}
+
+	// validate redis client
+	if redisClient != nil {
+		if _, err := redisClient.Ping(context.Background()).Result(); err != nil {
+			panic(fmt.Sprintf("Redis connection error: %s", err))
 		}
 	}
 
@@ -34,6 +52,7 @@ func Init(r *gin.Engine, d *gorm.DB, options ...interface{}) {
 	g.OimoAdmin = &_type.OimoAdminStruct{
 		Logger:        _log.NewLogger(_const.OimoAdminString, fileLogPath),
 		DB:            d,
+		RDB:           redisClient,
 		Router:        r,
 		Tables:        db.InitTables(d, adminConfig),
 		DBName:        getDBName(d),

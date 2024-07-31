@@ -30,6 +30,11 @@ func SetupGinRouter() {
 	router.POST(secretPathPrefix+"/fetch_list", middleware.AdminAuthMiddleware(), handler.FetchList)
 	router.POST(secretPathPrefix+"/log", middleware.AdminAuthMiddleware(), handler.Log)
 
+	router.POST(secretPathPrefix+"/redis/create_row", middleware.AdminAuthMiddleware(), handler.CreateRedisRow)
+	router.POST(secretPathPrefix+"/redis/delete_rows", middleware.AdminAuthMiddleware(), handler.DeleteRedisRows)
+	router.POST(secretPathPrefix+"/redis/update_rows", middleware.AdminAuthMiddleware(), handler.UpdateRedisRows)
+	router.POST(secretPathPrefix+"/redis/fetch_list", middleware.AdminAuthMiddleware(), handler.FetchRedisList)
+
 	wwwRootDir := functions.GetWWWRootDir()
 	router.StaticFile(fmt.Sprintf("%s/", secretPathPrefix), path.Join(wwwRootDir, "index.html"))
 	router.StaticFile(fmt.Sprintf("%s/site.json", secretPathPrefix), path.Join(wwwRootDir, "site.json"))

@@ -5,6 +5,7 @@ import (
 	"github.com/oimoyu/OimoAdmin/src/utils/_type"
 	"gorm.io/gorm"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -15,6 +16,7 @@ func InitTables(db *gorm.DB, adminConfig _type.AdminConfig) []_type.TableStruct 
 	} else {
 		var err error
 		tableNames, err = db.Migrator().GetTables()
+		sort.Strings(tableNames)
 		if err != nil {
 			panic(err)
 		}

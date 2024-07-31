@@ -3,6 +3,7 @@ package _type
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/oimoyu/OimoAdmin/src/utils/_log"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"reflect"
 )
@@ -25,6 +26,7 @@ type ColumnStruct struct {
 type OimoAdminStruct struct {
 	Logger *_log.LoggerStruct
 	DB     *gorm.DB
+	RDB    *redis.Client
 	Router *gin.Engine
 
 	DBName        string
@@ -38,6 +40,6 @@ type ConfigStruct struct {
 var ADMIN = "ADMIN"
 
 type PaginationRequestStruct struct {
-	Page    uint `json:"page"`
-	PerPage uint `json:"perPage"`
+	Page    uint64 `json:"page"`
+	PerPage uint64 `json:"perPage"`
 }

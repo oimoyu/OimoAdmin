@@ -332,6 +332,21 @@ func GeneratePages() error {
 	  ]
 	}
 `
+
+	redisPageResult := fmt.Sprintf(`
+  {
+	"label": "Redis",
+	"url": "/redis/",
+	"icon": "fa-solid fa-memory",
+	"schema": %s
+  }
+`, getRedisPageResult())
+
+	var isShowRedisPage bool
+	if g.OimoAdmin.RDB != nil {
+		isShowRedisPage = true
+	}
+
 	logPageResult := `
   {
 	"label": "Log",
@@ -376,8 +391,6 @@ func GeneratePages() error {
 			"table_name": "{{ .Table.Name }}"
 		}
 	}
-
-
   },
 `
 		pageTemplateData := map[string]interface{}{
@@ -421,6 +434,9 @@ func GeneratePages() error {
 			"icon": "fa fa-tachometer",
 			"schema": {{ .DashboardPage }}
 		  },
+			{{ if .IsShowRedisPage }}
+			  {{ .RedisPage }},
+			{{ end }}
           {{ .Pages }},
 		  {{ .LogPage }}
         ]
@@ -431,10 +447,12 @@ func GeneratePages() error {
 `
 
 	siteTemplateData := map[string]interface{}{
-		"Pages":         pagesTemplateResult,
-		"LoginPage":     loginPageResult,
-		"DashboardPage": dashboardPageResult,
-		"LogPage":       logPageResult,
+		"Pages":           pagesTemplateResult,
+		"LoginPage":       loginPageResult,
+		"DashboardPage":   dashboardPageResult,
+		"IsShowRedisPage": isShowRedisPage,
+		"RedisPage":       redisPageResult,
+		"LogPage":         logPageResult,
 	}
 	siteTemplateResult, err := functions.ParseTemplate(siteTemplateContent, siteTemplateData)
 	if err != nil {
@@ -481,6 +499,13 @@ func PageHandler(c *gin.Context) {
 		return
 	}
 
+	pageTemplateResult := crudPageResult(table)
+
+	c.String(200, pageTemplateResult)
+	return
+}
+
+func crudPageResult(table *_type.TableStruct) string {
 	pageTemplateContent := `
 	{
 	  "type": "page",
@@ -497,7 +522,8 @@ func PageHandler(c *gin.Context) {
 				"&": "$$",
 				"page": "${page}",
 				"perPage": "${perPage}",
-				"table_name": "{{ .Table.Name }}"
+				"table_name": "{{ .Table.Name }}",
+				"keyword": "${ CONCATENATE(keyword, '') }"
 			}
 		},
 		"quickSaveApi": {
@@ -646,7 +672,209 @@ func PageHandler(c *gin.Context) {
 		g.OimoAdmin.Logger.Error(err.Error())
 		panic(err)
 	}
+	return pageTemplateResult
+}
 
-	c.String(200, pageTemplateResult)
-	return
+func getRedisPageResult() string {
+	redisPageTemplateContent := `
+	{
+	  "type": "page",
+	  "id": "fetch_list_page",
+	  "title": "Redis",
+	  "body": {
+		"type": "crud",
+		"id": "fetch_list_crud",
+		"syncLocation": false,
+		"api": {
+			"method": "post",
+			"url": "./redis/fetch_list",
+			"data": {
+				"&": "$$",
+				"page": "${page}",
+				"perPage": "${perPage}"
+			}
+		},
+		"quickSaveApi": {
+			"method": "post",
+			"url": "./redis/update_rows",
+			"data": {
+				"&": "$$"
+			}
+		},
+		"footerToolbar": [
+		  "switch-per-page",
+		  "pagination"
+		],
+		"defaultParams": {
+		  "perPage": 50
+		},
+		"filter": {
+			"title": null,
+			"body": [
+			  {
+				"type": "input-text",
+				"name": "pattern",
+				"clearable": true,
+				"placeholder": "search by pattern",
+				"size": "sm"
+			  },
+			  {
+				"type": "submit",
+				"level": "primary",
+				"label": "query"
+			  },
+			  {
+				"type": "button",
+				"label": "Create Row",
+				"level": "success",
+				"icon": "fa-solid fa-plus",
+				"actionType": "dialog",
+				"dialog": {
+				  "title": "Create Row",
+				  "body": {
+					"type": "form",
+					"api": {
+						"method": "post",
+						"url": "./redis/create_row",
+						"data": {
+							"&": "$$"
+						}
+					},
+					"reload": "fetch_list_crud",
+					"body": [
+						{
+						  "type": "input-text",
+						  "name": "key",
+						  "label": "Key"
+						},
+						{
+						  "type": "input-text",
+						  "name": "value",
+						  "label": "Value"
+						},
+						{
+						  "type": "input-text",
+						  "name": "type",
+						  "label": "Type"
+						},
+						{
+						  "type": "input-text",
+						  "name": "ttl",
+						  "label": "TTL"
+						}
+					]
+				  }
+				}
+			  },
+			  {
+				"type": "button",
+				"label": "Delete Row",
+				"level": "danger",
+				"icon": "fa-solid fa-minus",
+				"actionType": "dialog",
+				"dialog": {
+				  "title": "Delete Row",
+				  "body": {
+					"type": "form",
+					"api": {
+						"method": "post",
+						"url": "./redis/delete_rows",
+						"data": {
+							"&": "$$"
+						}
+					},
+					"reload": "fetch_list_crud",
+					"body": [
+						{
+						  "type": "input-text",
+						  "name": "pattern",
+						  "placeholder": "user:*",
+						  "label": "Pattern"
+						}
+					]
+				  }
+				}
+			  }
+			]
+		},
+		"bulkActions": [
+
+		],
+		"columns": [
+			{
+			  "name": "key",
+			  "label": "Key"
+			},
+			{
+			  "name": "value",
+			  "label": "Value",
+			  "type": "html",
+			  "html": "${value | json}",
+			  "quickEdit":{
+				  "type": "input-text"
+				},
+			  "copyable": {
+			  	"content": "${value | json}"
+			  }
+			},
+			{
+			  "name": "type",
+			  "label": "Type"
+			},
+			{
+			  "name": "ttl",
+			  "label": "TTL",
+			  "quickEdit":{
+				  "type": "input-text"
+				}
+			},
+			{
+			  "type": "operation",
+			  "label": "Action",
+			  "buttons": [
+				{
+				  "type": "button-group",
+				  "buttons": [
+					{
+					  "type": "button",
+					  "label": "Delete",
+					  "level": "danger",
+					  "actionType": "ajax",
+					  "confirmText": "Are you sure to delete this row?",
+					  "api": {
+						"method": "post",
+						"url": "./redis/delete_rows",
+						"data": {
+							"pattern": "${key}"
+						}
+					  }
+
+					}
+
+				  ]
+				}
+			  ],
+			  "placeholder": "-",
+			  "fixed": "right"
+			}
+		],
+		"onEvent": {
+			"quickSaveSucc": {
+			  "actions": [
+			  ]
+			}
+		}
+	  }
+	}
+`
+	//pageTemplateData := map[string]interface{}{
+	//	"Table": table,
+	//}
+	//pageTemplateResult, err := functions.ParseTemplate(redisPageTemplateContent, pageTemplateData)
+	//if err != nil {
+	//	err := fmt.Errorf("parse page template error: %w", err)
+	//	g.OimoAdmin.Logger.Error(err.Error())
+	//	panic(err)
+	//}
+	return redisPageTemplateContent
 }
