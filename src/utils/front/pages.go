@@ -640,7 +640,7 @@ func crudPageResult(table *_type.TableStruct) string {
 						"method": "post",
 						"url": "./delete_rows",
 						"data": {
-							"ids": "${id},",
+							"ids": "${id}",
 							"table_name": "{{ .Table.Name }}"
 						}
 					  }

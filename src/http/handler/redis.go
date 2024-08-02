@@ -80,13 +80,13 @@ func FetchRedisList(c *gin.Context) {
 	}
 
 	rdb := g.OimoAdmin.RDB
-	keys, _, err := rdb.Scan(context.Background(), offset, redisKeyPattern, int64(paginationRequest.Page)).Result()
+	keys, _, err := rdb.Scan(context.Background(), offset, redisKeyPattern, int64(paginationRequest.PerPage)).Result()
 	if err != nil {
 		fmt.Println("get key failed: ", err)
 	}
 
 	items := make([]redisItemStruct, 0)
-	// 遍历每个键名
+	// iter key name
 	for _, key := range keys {
 		keyType, err := rdb.Type(context.Background(), key).Result()
 		if err != nil {
@@ -94,7 +94,7 @@ func FetchRedisList(c *gin.Context) {
 			continue
 		}
 
-		// 获取过期时间（TTL）
+		// get ttl
 		ttl, err := rdb.TTL(context.Background(), key).Result()
 		if err != nil {
 			g.OimoAdmin.Logger.Error("Failed to get TTL for key %s: %v\n", key, err)
@@ -105,7 +105,7 @@ func FetchRedisList(c *gin.Context) {
 		redisVarType := keyType
 		failedParseMsg := "Failed to parse value"
 
-		// 根据键的类型执行不同的操作
+		// action for different key type
 		switch keyType {
 		case "string":
 			val, err := rdb.Get(context.Background(), key).Result()
@@ -156,16 +156,55 @@ func FetchRedisList(c *gin.Context) {
 	var itemMap interface{}
 	data, err := json.Marshal(items) // Convert to a json string
 	if err != nil {
-		restful.ParamErr(c, "解析json错误")
+		restful.ParamErr(c, fmt.Sprintf("failed to parse json: %v", err))
 		return
 	}
 	err = json.Unmarshal(data, &itemMap) // Convert to a map
 
-	returnData := map[string]interface{}{
-		"items": itemMap,
+	msg := ""
+
+	// get total
+	var total int64
+	if redisKeyPattern == "*" {
+		total, err = rdb.DBSize(context.Background()).Result()
+		if err != nil {
+			restful.ParamErr(c, fmt.Sprintf("failed to get redis size: %v", err))
+			return
+		}
+	} else {
+		var cursor uint64
+		ctx := context.Background()
+		const maxCount = 50000
+
+		for {
+			var keys []string
+			var err error
+			keys, cursor, err = rdb.Scan(ctx, cursor, redisKeyPattern, 1000).Result()
+			if err != nil {
+				restful.ParamErr(c, fmt.Sprintf("failed to get redis size: %v", err))
+				return
+			}
+
+			total += int64(len(keys))
+
+			if total >= maxCount {
+				total = maxCount
+				msg = fmt.Sprintf("data is too big to scan count, please narrow search range")
+				break
+			}
+
+			if cursor == 0 {
+				break
+			}
+		}
 	}
 
-	restful.Ok(c, returnData)
+	returnData := map[string]interface{}{
+		"items": itemMap,
+		"total": total,
+	}
+
+	restful.Ok(c, returnData, msg)
 }
 
 //func getRedisKeys(requestStruct _type.PaginationRequestStruct) {}

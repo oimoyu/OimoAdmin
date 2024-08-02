@@ -8,6 +8,7 @@ import (
 	"github.com/oimoyu/OimoAdmin/src/utils/functions"
 	"github.com/oimoyu/OimoAdmin/src/utils/g"
 	"github.com/oimoyu/OimoAdmin/src/utils/restful"
+	"gorm.io/gorm"
 	"strings"
 )
 
@@ -33,10 +34,6 @@ func FetchList(c *gin.Context) {
 	items := make([]map[string]interface{}, 0)
 	db := g.OimoAdmin.DB
 	query := db.Table(fetchRequestData.TableName)
-
-	// pagination
-	offset := (paginationRequest.Page - 1) * paginationRequest.PerPage
-	query = query.Limit(int(paginationRequest.PerPage)).Offset(int(offset))
 
 	// order
 	if fetchRequestData.OrderBy != "" {
@@ -105,9 +102,12 @@ func FetchList(c *gin.Context) {
 	}
 
 	// copy a query for count
-	countQuery := *query
+	query = query.Session(&gorm.Session{})
 
-	result := query.Find(&items)
+	// pagination
+	offset := (paginationRequest.Page - 1) * paginationRequest.PerPage
+
+	result := query.Limit(int(paginationRequest.PerPage)).Offset(int(offset)).Find(&items)
 	if result.Error != nil {
 		errMsg := fmt.Sprintf("failed to get items: %v", result.Error)
 		g.OimoAdmin.Logger.Error(errMsg)
@@ -116,7 +116,7 @@ func FetchList(c *gin.Context) {
 	}
 
 	var total int64
-	result = countQuery.Count(&total)
+	result = query.Count(&total)
 	if result.Error != nil {
 		errMsg := fmt.Sprintf("failed to count items: %v", result.Error)
 		g.OimoAdmin.Logger.Error(errMsg)
