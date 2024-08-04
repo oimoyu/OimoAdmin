@@ -16,6 +16,10 @@ which is very suitable for small and simple projects.
     // ...
     
     OimoAdmin.Init(r, DB)
+    
+    // var *redis.Client 
+    // OimoAdmin.Init(r, DB, RDB)  // redis is supported, but only query and delete are available 
+    
     r.Run("0.0.0.0:8098")
 ```
 You can check the full example code [here](./example/example.go). 
