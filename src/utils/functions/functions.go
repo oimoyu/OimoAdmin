@@ -61,7 +61,7 @@ func GetRootDir() string {
 
 func GetRuntimeDir() string {
 	rootDir := GetRootDir()
-	runtimeDir := filepath.Join(rootDir, "oimo_admin_runtime")
+	runtimeDir := filepath.Join(rootDir, "admin_runtime")
 	return runtimeDir
 }
 func GetEnvDir() string {

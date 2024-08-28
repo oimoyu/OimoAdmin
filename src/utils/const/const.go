@@ -2,8 +2,8 @@ package _const
 
 import "time"
 
-const OimoAdminApiPrefix = "/oimo_admin_api"
-const OimoAdminStaticPrefix = "/oimo_admin"
+const OimoAdminApiPrefix = "/admin_api"
+const OimoAdminStaticPrefix = "/admin"
 
 const TokenDuration = time.Hour * 12
 
